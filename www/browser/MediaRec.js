@@ -48,8 +48,8 @@ function createNode (media) {
 
     node.onerror = function (e) {
         // Due to media.spec.15 It should return MediaError for bad filename
-        var err = e.target.error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED ?
-            { code: MediaError.MEDIA_ERR_ABORTED } :
+        var err = e.target.error.code === MediaRecError.MEDIA_ERR_SRC_NOT_SUPPORTED ?
+            { code: MediaRecError.MEDIA_ERR_ABORTED } :
             e.target.error;
 
         MediaRec.onStatus(media.id, MediaRec.MEDIA_ERROR, err);
@@ -94,7 +94,7 @@ var MediaRec = function(src, successCallback, errorCallback, statusCallback) {
     try {
         this.node = createNode(this);
     } catch (err) {
-        MediaRec.onStatus(this.id, MediaRec.MEDIA_ERROR, { code: MediaError.MEDIA_ERR_ABORTED });
+        MediaRec.onStatus(this.id, MediaRec.MEDIA_ERROR, { code: MediaRecError.MEDIA_ERR_ABORTED });
     }
 };
 
@@ -122,7 +122,7 @@ MediaRec.prototype.play = function() {
         try {
             this.node = createNode(this);
         } catch (err) {
-            MediaRec.onStatus(this.id, MediaRec.MEDIA_ERROR, { code: MediaError.MEDIA_ERR_ABORTED });
+            MediaRec.onStatus(this.id, MediaRec.MEDIA_ERROR, { code: MediaRecError.MEDIA_ERR_ABORTED });
         }
     }
 
