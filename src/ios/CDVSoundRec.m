@@ -170,13 +170,13 @@ for significantly better compression.
 }
 
 // Creates or gets the cached audio file resource object
-- (CDVAudioFile*)audioFileForResource:(NSString*)resourcePath withId:(NSString*)mediaId doValidation:(BOOL)bValidate forRecording:(BOOL)bRecord
+- (CDVAudioFileRec*)audioFileForResource:(NSString*)resourcePath withId:(NSString*)mediaId doValidation:(BOOL)bValidate forRecording:(BOOL)bRecord
 {
     BOOL bError = NO;
     CDVMediaError errcode = MEDIA_ERR_NONE_SUPPORTED;
     NSString* errMsg = @"";
     NSString* jsString = nil;
-    CDVAudioFile* audioFile = nil;
+    CDVAudioFileRec* audioFile = nil;
     NSURL* resourceURL = nil;
 
     if ([self soundCache] == nil) {
@@ -191,7 +191,7 @@ for significantly better compression.
             errcode = MEDIA_ERR_ABORTED;
             errMsg = @"invalid media src argument";
         } else {
-            audioFile = [[CDVAudioFile alloc] init];
+            audioFile = [[CDVAudioFileRec alloc] init];
             audioFile.resourcePath = resourcePath;
             audioFile.resourceURL = nil;  // validate resourceURL when actually play or record
             [[self soundCache] setObject:audioFile forKey:mediaId];
@@ -257,7 +257,7 @@ for significantly better compression.
     NSString* mediaId = [command argumentAtIndex:0];
     NSString* resourcePath = [command argumentAtIndex:1];
 
-    CDVAudioFile* audioFile = [self audioFileForResource:resourcePath withId:mediaId doValidation:NO forRecording:NO];
+    CDVAudioFileRec* audioFile = [self audioFileForResource:resourcePath withId:mediaId doValidation:NO forRecording:NO];
 
     if (audioFile == nil) {
         NSString* errorMessage = [NSString stringWithFormat:@"Failed to initialize Media file with path %@", resourcePath];
@@ -279,7 +279,7 @@ for significantly better compression.
     NSNumber* volume = [command argumentAtIndex:1 withDefault:[NSNumber numberWithFloat:1.0]];
 
     if ([self soundCache] != nil) {
-        CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+        CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
         if (audioFile != nil) {
             audioFile.volume = volume;
             if (audioFile.player) {
@@ -306,7 +306,7 @@ for significantly better compression.
         BOOL bError = NO;
         NSString* jsString = nil;
 
-        CDVAudioFile* audioFile = [self audioFileForResource:resourcePath withId:mediaId doValidation:YES forRecording:NO];
+        CDVAudioFileRec* audioFile = [self audioFileForResource:resourcePath withId:mediaId doValidation:YES forRecording:NO];
         if ((audioFile != nil) && (audioFile.resourceURL != nil)) {
             if (audioFile.player == nil) {
                 bError = [self prepareToPlay:audioFile withId:mediaId];
@@ -376,7 +376,7 @@ for significantly better compression.
     }];
 }
 
-- (BOOL)prepareToPlay:(CDVAudioFile*)audioFile withId:(NSString*)mediaId
+- (BOOL)prepareToPlay:(CDVAudioFileRec*)audioFile withId:(NSString*)mediaId
 {
     BOOL bError = NO;
     NSError* __autoreleasing playerError = nil;
@@ -385,7 +385,7 @@ for significantly better compression.
     NSURL* resourceURL = audioFile.resourceURL;
 
     if ([resourceURL isFileURL]) {
-        audioFile.player = [[CDVAudioPlayer alloc] initWithContentsOfURL:resourceURL error:&playerError];
+        audioFile.player = [[CDVAudioPlayerRec alloc] initWithContentsOfURL:resourceURL error:&playerError];
     } else {
         NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:resourceURL];
         NSString* userAgent = [self.commandDelegate userAgent];
@@ -407,7 +407,7 @@ for significantly better compression.
 
             [data writeToFile:filePath atomically:YES];
             NSURL* fileURL = [NSURL fileURLWithPath:filePath];
-            audioFile.player = [[CDVAudioPlayer alloc] initWithContentsOfURL:fileURL error:&playerError];
+            audioFile.player = [[CDVAudioPlayerRec alloc] initWithContentsOfURL:fileURL error:&playerError];
         }
     }
 
@@ -429,7 +429,7 @@ for significantly better compression.
 - (void)stopPlayingAudio:(CDVInvokedUrlCommand*)command
 {
     NSString* mediaId = [command argumentAtIndex:0];
-    CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if ((audioFile != nil) && (audioFile.player != nil)) {
@@ -447,7 +447,7 @@ for significantly better compression.
 {
     NSString* mediaId = [command argumentAtIndex:0];
     NSString* jsString = nil;
-    CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
 
     if ((audioFile != nil) && (audioFile.player != nil)) {
         NSLog(@"Paused playing audio sample '%@'", audioFile.resourcePath);
@@ -470,7 +470,7 @@ for significantly better compression.
 
     NSString* mediaId = [command argumentAtIndex:0];
 
-    CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     double position = [[command argumentAtIndex:1] doubleValue];
 
     if ((audioFile != nil) && (audioFile.player != nil)) {
@@ -497,7 +497,7 @@ for significantly better compression.
     NSString* mediaId = [command argumentAtIndex:0];
 
     if (mediaId != nil) {
-        CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+        CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
         if (audioFile != nil) {
             if (audioFile.player && [audioFile.player isPlaying]) {
                 [audioFile.player stop];
@@ -521,7 +521,7 @@ for significantly better compression.
     NSString* mediaId = [command argumentAtIndex:0];
 
 #pragma unused(mediaId)
-    CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     double position = -1;
 
     if ((audioFile != nil) && (audioFile.player != nil) && [audioFile.player isPlaying]) {
@@ -543,7 +543,7 @@ for significantly better compression.
     #pragma unused(callbackId)
 
         NSString* mediaId = [command argumentAtIndex:0];
-        CDVAudioFile* audioFile = [self audioFileForResource:[command argumentAtIndex:1] withId:mediaId doValidation:YES forRecording:YES];
+        CDVAudioFileRec* audioFile = [self audioFileForResource:[command argumentAtIndex:1] withId:mediaId doValidation:YES forRecording:YES];
         __block NSString* jsString = nil;
         __block NSString* errorMsg = @"";
 
@@ -591,7 +591,7 @@ for significantly better compression.
                     nil
                 ];
                 
-                audioFile.recorder = [[CDVAudioRecorder alloc] initWithURL:audioFile.resourceURL settings:recorderSettingsDict error:&error];
+                audioFile.recorder = [[CDVAudioRecorderRec alloc] initWithURL:audioFile.resourceURL settings:recorderSettingsDict error:&error];
                 
                 //enable metering
                 audioFile.recorder.meteringEnabled = YES;
@@ -667,7 +667,7 @@ for significantly better compression.
         #pragma unused(callbackId)
 
         NSString* mediaId = [command argumentAtIndex:0];
-        CDVAudioFile* audioFile = [self audioFileForResource:[command argumentAtIndex:1] withId:mediaId doValidation:YES forRecording:YES];
+        CDVAudioFileRec* audioFile = [self audioFileForResource:[command argumentAtIndex:1] withId:mediaId doValidation:YES forRecording:YES];
         __block NSString* jsString = nil;
         __block NSString* errorMsg = @"";
     
@@ -722,7 +722,7 @@ for significantly better compression.
                     nil
                 ];
                 
-                audioFile.recorder = [[CDVAudioRecorder alloc] initWithURL:audioFile.resourceURL settings:recorderSettingsDict error:&error];
+                audioFile.recorder = [[CDVAudioRecorderRec alloc] initWithURL:audioFile.resourceURL settings:recorderSettingsDict error:&error];
 
                 //enable metering
                 audioFile.recorder.meteringEnabled = YES;
@@ -795,7 +795,7 @@ for significantly better compression.
 {
     NSString* mediaId = [command argumentAtIndex:0];
 
-    CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if ((audioFile != nil) && (audioFile.recorder != nil)) {
@@ -815,7 +815,7 @@ for significantly better compression.
 {
     NSString* mediaId = [command argumentAtIndex:0];
 
-    CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if ((audioFile != nil) && (audioFile.recorder != nil)) {
@@ -833,7 +833,7 @@ for significantly better compression.
 {
     NSString* mediaId = [command argumentAtIndex:0];
 
-    CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if ((audioFile != nil) && (audioFile.recorder != nil)) {
@@ -851,7 +851,7 @@ for significantly better compression.
 {
     NSString* mediaId = [command argumentAtIndex:0];
 
-    CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if ((audioFile != nil) && (audioFile.recorder != nil)) {
@@ -881,9 +881,9 @@ for significantly better compression.
 
 - (void)audioRecorderDidFinishRecording:(AVAudioRecorder*)recorder successfully:(BOOL)flag
 {
-    CDVAudioRecorder* aRecorder = (CDVAudioRecorder*)recorder;
+    CDVAudioRecorderRec* aRecorder = (CDVAudioRecorderRec*)recorder;
     NSString* mediaId = aRecorder.mediaId;
-    CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if (audioFile != nil) {
@@ -903,9 +903,9 @@ for significantly better compression.
 
 - (void)audioPlayerDidFinishPlaying:(AVAudioPlayer*)player successfully:(BOOL)flag
 {
-    CDVAudioPlayer* aPlayer = (CDVAudioPlayer*)player;
+    CDVAudioPlayerRec* aPlayer = (CDVAudioPlayerRec*)player;
     NSString* mediaId = aPlayer.mediaId;
-    CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if (audioFile != nil) {
@@ -940,7 +940,7 @@ for significantly better compression.
 
 - (void)onReset
 {
-    for (CDVAudioFile* audioFile in [[self soundCache] allValues]) {
+    for (CDVAudioFileRec* audioFile in [[self soundCache] allValues]) {
         if (audioFile != nil) {
             if (audioFile.player != nil) {
                 [audioFile.player stop];
@@ -957,7 +957,7 @@ for significantly better compression.
 
 @end
 
-@implementation CDVAudioFile
+@implementation CDVAudioFileRec
 
 @synthesize resourcePath;
 @synthesize resourceURL;
@@ -965,12 +965,12 @@ for significantly better compression.
 @synthesize recorder;
 
 @end
-@implementation CDVAudioPlayer
+@implementation CDVAudioPlayerRec
 @synthesize mediaId;
 
 @end
 
-@implementation CDVAudioRecorder
+@implementation CDVAudioRecorderRec
 @synthesize mediaId;
 
 @end

@@ -48,21 +48,21 @@ enum CDVMediaMsg {
 };
 typedef NSUInteger CDVMediaMsg;
 
-@interface CDVAudioPlayer : AVAudioPlayer
+@interface CDVAudioPlayerRec : AVAudioPlayer
 {
     NSString* mediaId;
 }
 @property (nonatomic, copy) NSString* mediaId;
 @end
 
-@interface CDVAudioRecorder : AVAudioRecorder
+@interface CDVAudioRecorderRec : AVAudioRecorder
 {
     NSString* mediaId;
 }
 @property (nonatomic, copy) NSString* mediaId;
 @end
 
-@interface CDVAudioFile : NSObject
+@interface CDVAudioFileRec : NSObject
 {
     NSString* resourcePath;
     NSURL* resourceURL;
