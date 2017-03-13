@@ -65,7 +65,7 @@ for significantly better compression.
 #define CDVFILE_PREFIX @"cdvfile://"
 #define RECORDING_M4A @"m4a"
 
-@implementation CDVSound
+@implementation CDVSoundRec
 
 @synthesize soundCache, avSession;
 
@@ -549,7 +549,7 @@ for significantly better compression.
 
         if ((audioFile != nil) && (audioFile.resourceURL != nil)) {
 
-            __weak CDVSound* weakSelf = self;
+            __weak CDVSoundRec* weakSelf = self;
 
             void (^startRecording)(void) = ^{
                 NSError* __autoreleasing error = nil;
@@ -673,7 +673,7 @@ for significantly better compression.
     
         if ((audioFile != nil) && (audioFile.resourceURL != nil)) {
 
-            __weak CDVSound* weakSelf = self;
+            __weak CDVSoundRec* weakSelf = self;
 
             void (^startRecording)(void) = ^{
                 NSError* __autoreleasing error = nil;
