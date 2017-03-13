@@ -66,17 +66,17 @@ typedef NSUInteger CDVMediaMsg;
 {
     NSString* resourcePath;
     NSURL* resourceURL;
-    CDVAudioPlayer* player;
-    CDVAudioRecorder* recorder;
+    CDVAudioPlayerRec* player;
+    CDVAudioRecorderRec* recorder;
     NSNumber* volume;
 }
 
 @property (nonatomic, strong) NSString* resourcePath;
 @property (nonatomic, strong) NSURL* resourceURL;
-@property (nonatomic, strong) CDVAudioPlayer* player;
+@property (nonatomic, strong) CDVAudioPlayerRec* player;
 @property (nonatomic, strong) NSNumber* volume;
 
-@property (nonatomic, strong) CDVAudioRecorder* recorder;
+@property (nonatomic, strong) CDVAudioRecorderRec* recorder;
 
 @end
 
@@ -101,8 +101,8 @@ typedef NSUInteger CDVMediaMsg;
 - (NSURL*)urlForRecording:(NSString*)resourcePath;
 - (NSURL*)urlForPlaying:(NSString*)resourcePath;
 
-- (CDVAudioFile*)audioFileForResource:(NSString*)resourcePath withId:(NSString*)mediaId doValidation:(BOOL)bValidate forRecording:(BOOL)bRecord;
-- (BOOL)prepareToPlay:(CDVAudioFile*)audioFile withId:(NSString*)mediaId;
+- (CDVAudioFileRec*)audioFileForResource:(NSString*)resourcePath withId:(NSString*)mediaId doValidation:(BOOL)bValidate forRecording:(BOOL)bRecord;
+- (BOOL)prepareToPlay:(CDVAudioFileRec*)audioFile withId:(NSString*)mediaId;
 - (NSString*)createMediaErrorWithCode:(CDVMediaError)code message:(NSString*)message;
 
 - (void)startRecordingAudio:(CDVInvokedUrlCommand*)command;
