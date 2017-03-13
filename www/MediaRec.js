@@ -37,8 +37,8 @@ var mediaObjects = {};
  * @param statusCallback        The callback to be called when media status has changed.
  *                                  statusCallback(int statusCode) - OPTIONAL
  */
-var Media = function(src, successCallback, errorCallback, statusCallback) {
-    argscheck.checkArgs('sFFF', 'Media', arguments);
+var MediaRec = function(src, successCallback, errorCallback, statusCallback) {
+    argscheck.checkArgs('sFFF', 'MediaRec', arguments);
     this.id = utils.createUUID();
     mediaObjects[this.id] = this;
     this.src = src;
@@ -47,60 +47,60 @@ var Media = function(src, successCallback, errorCallback, statusCallback) {
     this.statusCallback = statusCallback;
     this._duration = -1;
     this._position = -1;
-    exec(null, this.errorCallback, "Media", "create", [this.id, this.src]);
+    exec(null, this.errorCallback, "MediaRec", "create", [this.id, this.src]);
 };
 
-// Media messages
-Media.MEDIA_STATE = 1;
-Media.MEDIA_DURATION = 2;
-Media.MEDIA_POSITION = 3;
-Media.MEDIA_ERROR = 9;
+// MediaRec messages
+MediaRec.MEDIA_STATE = 1;
+MediaRec.MEDIA_DURATION = 2;
+MediaRec.MEDIA_POSITION = 3;
+MediaRec.MEDIA_ERROR = 9;
 
-// Media states
-Media.MEDIA_NONE = 0;
-Media.MEDIA_STARTING = 1;
-Media.MEDIA_RUNNING = 2;
-Media.MEDIA_PAUSED = 3;
-Media.MEDIA_STOPPED = 4;
-Media.MEDIA_MSG = ["None", "Starting", "Running", "Paused", "Stopped"];
+// MediaRec states
+MediaRec.MEDIA_NONE = 0;
+MediaRec.MEDIA_STARTING = 1;
+MediaRec.MEDIA_RUNNING = 2;
+MediaRec.MEDIA_PAUSED = 3;
+MediaRec.MEDIA_STOPPED = 4;
+MediaRec.MEDIA_MSG = ["None", "Starting", "Running", "Paused", "Stopped"];
 
 // "static" function to return existing objs.
-Media.get = function(id) {
+MediaRec.get = function(id) {
     return mediaObjects[id];
 };
 
 /**
  * Start or resume playing audio file.
  */
-Media.prototype.play = function(options) {
-    exec(null, null, "Media", "startPlayingAudio", [this.id, this.src, options]);
+MediaRec.prototype.play = function(options) {
+    exec(null, null, "MediaRec", "startPlayingAudio", [this.id, this.src, options]);
 };
 
 /**
  * Stop playing audio file.
  */
-Media.prototype.stop = function() {
+MediaRec.prototype.stop = function() {
     var me = this;
     exec(function() {
         me._position = 0;
-    }, this.errorCallback, "Media", "stopPlayingAudio", [this.id]);
+    }, this.errorCallback, "MediaRec", "stopPlayingAudio", [this.id]);
 };
 
 /**
  * Seek or jump to a new time in the track..
  */
-Media.prototype.seekTo = function(milliseconds) {
+MediaRec.prototype.seekTo = function(milliseconds) {
     var me = this;
     exec(function(p) {
         me._position = p;
-    }, this.errorCallback, "Media", "seekToAudio", [this.id, milliseconds]);
+    }, this.errorCallback, "MediaRec", "seekToAudio", [this.id, milliseconds]);
 };
 
 /**
  * Pause playing audio file.
  */
-Media.prototype.pause = function() {
-    exec(null, this.errorCallback, "Media", "pausePlayingAudio", [this.id]);
+MediaRec.prototype.pause = function() {
+    exec(null, this.errorCallback, "MediaRec", "pausePlayingAudio", [this.id]);
 };
 
 /**
@@ -109,56 +109,56 @@ Media.prototype.pause = function() {
  *
  * @return      duration or -1 if not known.
  */
-Media.prototype.getDuration = function() {
+MediaRec.prototype.getDuration = function() {
     return this._duration;
 };
 
 /**
  * Get position of audio.
  */
-Media.prototype.getCurrentPosition = function(success, fail) {
+MediaRec.prototype.getCurrentPosition = function(success, fail) {
     var me = this;
     exec(function(p) {
         me._position = p;
         success(p);
-    }, fail, "Media", "getCurrentPositionAudio", [this.id]);
+    }, fail, "MediaRec", "getCurrentPositionAudio", [this.id]);
 };
 
 /**
  * Start recording audio file.
  */
-Media.prototype.startRecord = function() {
-    exec(null, this.errorCallback, "Media", "startRecordingAudio", [this.id, this.src]);
+MediaRec.prototype.startRecord = function() {
+    exec(null, this.errorCallback, "MediaRec", "startRecordingAudio", [this.id, this.src]);
 };
 
 /**
  * Start recording audio file, with compression, for iOS only.
  */
 
-Media.prototype.startRecordWithCompression = function(options) {
-    exec(null, this.errorCallback, "Media", "startRecordingAudioWithCompression", [this.id, this.src, options]);
+MediaRec.prototype.startRecordWithCompression = function(options) {
+    exec(null, this.errorCallback, "MediaRec", "startRecordingAudioWithCompression", [this.id, this.src, options]);
 };
 
 
 /**
  * Stop recording audio file.
  */
-Media.prototype.stopRecord = function() {
-    exec(null, this.errorCallback, "Media", "stopRecordingAudio", [this.id]);
+MediaRec.prototype.stopRecord = function() {
+    exec(null, this.errorCallback, "MediaRec", "stopRecordingAudio", [this.id]);
 };
 
 /**
  * Pause recording audio file.
  */
-Media.prototype.pauseRecord = function() {
-    exec(null, this.errorCallback, "Media", "pauseRecordingAudio", [this.id]);
+MediaRec.prototype.pauseRecord = function() {
+    exec(null, this.errorCallback, "MediaRec", "pauseRecordingAudio", [this.id]);
 };
 
 /**
  * Resume recording audio file.
  */
-Media.prototype.resumeRecord = function() {
-    exec(null, this.errorCallback, "Media", "resumeRecordingAudio", [this.id, this.src]);
+MediaRec.prototype.resumeRecord = function() {
+    exec(null, this.errorCallback, "MediaRec", "resumeRecordingAudio", [this.id, this.src]);
 };
 
 /**
@@ -168,16 +168,16 @@ Media.prototype.resumeRecord = function() {
  */
 
 if (cordova.platformId === 'android' ) {
-    Media.prototype.getRecordLevels = function(success, fail) {
+    MediaRec.prototype.getRecordLevels = function(success, fail) {
         var me = this;
         exec(function(p) {
             me._db = p;
             success(p);
-        }, fail, "Media", "getRecordDbLevel", [this.id]);
+        }, fail, "MediaRec", "getRecordDbLevel", [this.id]);
     };
 } else if (cordova.platformId === 'ios') {
-    Media.prototype.getRecordLevels = function(success, fail) {
-        exec(success,fail, "Media", "getAudioRecordingLevels", [this.id]);
+    MediaRec.prototype.getRecordLevels = function(success, fail) {
+        exec(success,fail, "MediaRec", "getAudioRecordingLevels", [this.id]);
     };
 }
 
@@ -185,15 +185,15 @@ if (cordova.platformId === 'android' ) {
 /**
  * Release the resources.
  */
-Media.prototype.release = function() {
-    exec(null, this.errorCallback, "Media", "release", [this.id]);
+MediaRec.prototype.release = function() {
+    exec(null, this.errorCallback, "MediaRec", "release", [this.id]);
 };
 
 /**
  * Adjust the volume.
  */
-Media.prototype.setVolume = function(volume) {
-    exec(null, null, "Media", "setVolume", [this.id, volume]);
+MediaRec.prototype.setVolume = function(volume) {
+    exec(null, null, "MediaRec", "setVolume", [this.id, volume]);
 };
 
 /**
@@ -204,43 +204,43 @@ Media.prototype.setVolume = function(volume) {
  * @param msgType       The 'type' of update this is
  * @param value         Use of value is determined by the msgType
  */
-Media.onStatus = function(id, msgType, value) {
+MediaRec.onStatus = function(id, msgType, value) {
 
     var media = mediaObjects[id];
 
     if(media) {
         switch(msgType) {
-            case Media.MEDIA_STATE :
+            case MediaRec.MEDIA_STATE :
                 media.statusCallback && media.statusCallback(value);
-                if(value == Media.MEDIA_STOPPED) {
+                if(value == MediaRec.MEDIA_STOPPED) {
                     media.successCallback && media.successCallback();
                 }
                 break;
-            case Media.MEDIA_DURATION :
+            case MediaRec.MEDIA_DURATION :
                 media._duration = value;
                 break;
-            case Media.MEDIA_ERROR :
+            case MediaRec.MEDIA_ERROR :
                 media.errorCallback && media.errorCallback(value);
                 break;
-            case Media.MEDIA_POSITION :
+            case MediaRec.MEDIA_POSITION :
                 media._position = Number(value);
                 break;
             default :
-                console.error && console.error("Unhandled Media.onStatus :: " + msgType);
+                console.error && console.error("Unhandled MediaRec.onStatus :: " + msgType);
                 break;
         }
     }
     else {
-         console.error && console.error("Received Media.onStatus callback for unknown media :: " + id);
+         console.error && console.error("Received MediaRec.onStatus callback for unknown media :: " + id);
     }
 
 };
 
-module.exports = Media;
+module.exports = MediaRec;
 
 function onMessageFromNative(msg) {
     if (msg.action == 'status') {
-        Media.onStatus(msg.status.id, msg.status.msgType, msg.status.value);
+        MediaRec.onStatus(msg.status.id, msg.status.msgType, msg.status.value);
     } else {
         throw new Error('Unknown media action' + msg.action);
     }
@@ -254,7 +254,7 @@ if (cordova.platformId === 'android' || cordova.platformId === 'amazon-fireos' |
     channel.waitForInitialization('onMediaPluginReady');
 
     channel.onCordovaReady.subscribe(function() {
-        exec(onMessageFromNative, undefined, 'Media', 'messageChannel', []);
+        exec(onMessageFromNative, undefined, 'MediaRec', 'messageChannel', []);
         channel.initializationComplete('onMediaPluginReady');
     });
 }

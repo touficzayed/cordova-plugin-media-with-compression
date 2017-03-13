@@ -54,7 +54,7 @@ for significantly better compression.
  Add: #import <AVFoundation/AVFoundation.h>
  */
 
-#import "CDVSound.h"
+#import "CDVSoundRec.h"
 #import "CDVFile.h"
 #import <AVFoundation/AVFoundation.h>
 
