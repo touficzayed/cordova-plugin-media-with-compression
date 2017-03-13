@@ -36,19 +36,19 @@ version="2.1.1">
     
     <dependency id="cordova-plugin-file" version=">=3.0.0" />
 
-    <js-module src="www/MediaRecError.js" name="MediaError">
-        <clobbers target="window.MediaError" />
+    <js-module src="www/MediaRecError.js" name="MediaRecError">
+        <clobbers target="window.MediaRecError" />
     </js-module>
     
-    <js-module src="www/MediaRec.js" name="Media">
-        <clobbers target="window.Media" />
+    <js-module src="www/MediaRec.js" name="MediaRec">
+        <clobbers target="window.MediaRec" />
     </js-module>
     
     <!-- android -->
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="MediaRec" >
-                <param name="android-package" value="org.apache.cordova.media.AudioHandlerRec"/>
+                <param name="android-package" value="org.apache.cordova.mediarec.AudioHandlerRec"/>
             </feature>
         </config-file>
 
@@ -59,10 +59,10 @@ version="2.1.1">
             <uses-permission android:name="android.permission.READ_PHONE_STATE" />
         </config-file>
 
-        <source-file src="src/android/AudioHandler.java" target-dir="src/org/apache/cordova/media" />
-        <source-file src="src/android/AudioPlayer.java" target-dir="src/org/apache/cordova/media" />
-        <source-file src="src/android/FileHelper.java" target-dir="src/org/apache/cordova/media" />
-        <source-file src="src/android/mp4ParserWrapper.java" target-dir="src/org/apache/cordova/media" />
+        <source-file src="src/android/AudioHandlerRec.java" target-dir="src/org/apache/cordova/mediarec" />
+        <source-file src="src/android/AudioPlayerRec.java" target-dir="src/org/apache/cordova/mediarec" />
+        <source-file src="src/android/FileHelper.java" target-dir="src/org/apache/cordova/mediarec" />
+        <source-file src="src/android/mp4ParserWrapper.java" target-dir="src/org/apache/cordova/mediarec" />
         <source-file src="src/android/isoparser-1.1.17.jar" target-dir="libs" />
         <source-file src="src/android/aspectjrt-1.8.8.jar" target-dir="libs" />
 
@@ -192,7 +192,7 @@ version="2.1.1">
     <!-- browser -->
     <platform name="browser">
         <js-module src="www/browser/MediaRec.js" name="BrowserMedia">
-            <clobbers target="window.Media" />
+            <clobbers target="window.MediaRec" />
         </js-module>
     </platform>
 
