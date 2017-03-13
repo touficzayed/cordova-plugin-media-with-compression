@@ -80,7 +80,7 @@ typedef NSUInteger CDVMediaMsg;
 
 @end
 
-@interface CDVSound : CDVPlugin <AVAudioPlayerDelegate, AVAudioRecorderDelegate>
+@interface CDVSoundRec : CDVPlugin <AVAudioPlayerDelegate, AVAudioRecorderDelegate>
 {
     NSMutableDictionary* soundCache;
     AVAudioSession* avSession;
