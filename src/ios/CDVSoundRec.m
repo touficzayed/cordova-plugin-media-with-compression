@@ -67,7 +67,7 @@ for significantly better compression.
 
 @implementation CDVSoundRec
 
-@synthesize soundCacheRec, avSession;
+@synthesize soundCacheRec, avSessionRec;
 
 // Maps a url for a resource path for recording
 - (NSURL*)urlForRecording:(NSString*)resourcePath
@@ -225,14 +225,14 @@ for significantly better compression.
 {
     BOOL bSession = YES;
 
-    if (!self.avSession) {
+    if (!self.avSessionRec) {
         NSError* error = nil;
 
-        self.avSession = [AVAudioSession sharedInstance];
+        self.avSessionRec = [AVAudioSession sharedInstance];
         if (error) {
             // is not fatal if can't get AVAudioSession , just log the error
             NSLog(@"error creating audio session: %@", [[error userInfo] description]);
-            self.avSession = nil;
+            self.avSessionRec = nil;
             bSession = NO;
         }
     }
@@ -323,8 +323,8 @@ for significantly better compression.
                     }
 
                     NSString* sessionCategory = bPlayAudioWhenScreenIsLocked ? AVAudioSessionCategoryPlayback : AVAudioSessionCategorySoloAmbient;
-                    [self.avSession setCategory:sessionCategory error:&err];
-                    if (![self.avSession setActive:YES error:&err]) {
+                    [self.avSessionRec setCategory:sessionCategory error:&err];
+                    if (![self.avSessionRec setActive:YES error:&err]) {
                         // other audio with higher priority that does not allow mixing could cause this to fail
                         NSLog(@"Unable to play audio: %@", [err localizedFailureReason]);
                         bError = YES;
@@ -414,8 +414,8 @@ for significantly better compression.
     if (playerError != nil) {
         NSLog(@"Failed to initialize AVAudioPlayer: %@\n", [playerError localizedDescription]);
         audioFile.player = nil;
-        if (self.avSession) {
-            [self.avSession setActive:NO error:nil];
+        if (self.avSessionRec) {
+            [self.avSessionRec setActive:NO error:nil];
         }
         bError = YES;
     } else {
@@ -505,9 +505,9 @@ for significantly better compression.
             if (audioFile.recorder && [audioFile.recorder isRecording]) {
                 [audioFile.recorder stop];
             }
-            if (self.avSession) {
-                [self.avSession setActive:NO error:nil];
-                self.avSession = nil;
+            if (self.avSessionRec) {
+                [self.avSessionRec setActive:NO error:nil];
+                self.avSessionRec = nil;
             }
             [[self soundCacheRec] removeObjectForKey:mediaId];
             NSLog(@"Media with id %@ released", mediaId);
@@ -560,13 +560,13 @@ for significantly better compression.
                 }
                 // get the audioSession and set the category to allow recording when device is locked or ring/silent switch engaged
                 if ([weakSelf hasAudioSession]) {
-                    if (![weakSelf.avSession.category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
-                        [weakSelf.avSession setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers|AVAudioSessionCategoryOptionDefaultToSpeaker error:nil];
+                    if (![weakSelf.avSessionRec.category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
+                        [weakSelf.avSessionRec setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers|AVAudioSessionCategoryOptionDefaultToSpeaker error:nil];
 						// force output to speaker, resolves issues with HTML5 audio playback within the app
-						// [weakSelf.avSession overrideOutputAudioPort:AVAudioSessionCategoryOptionDefaultToSpeaker  error:nil];
+						// [weakSelf.avSessionRec overrideOutputAudioPort:AVAudioSessionCategoryOptionDefaultToSpeaker  error:nil];
                     }
 
-                    if (![weakSelf.avSession setActive:YES error:&error]) {
+                    if (![weakSelf.avSessionRec setActive:YES error:&error]) {
                         // other audio with higher priority that does not allow mixing could cause this to fail
                         errorMsg = [NSString stringWithFormat:@"Unable to record audio: %@", [error localizedFailureReason]];
                         // jsString = [NSString stringWithFormat: @"%@(\"%@\",%d,%d);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, MEDIA_ERR_ABORTED];
@@ -616,8 +616,8 @@ for significantly better compression.
                         errorMsg = @"Failed to start recording using AVAudioRecorder";
                     }
                     audioFile.recorder = nil;
-                    if (weakSelf.avSession) {
-                        [weakSelf.avSession setActive:NO error:nil];
+                    if (weakSelf.avSessionRec) {
+                        [weakSelf.avSessionRec setActive:NO error:nil];
                     }
                     jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_ABORTED message:errorMsg]];
                     [weakSelf.commandDelegate evalJs:jsString];
@@ -625,19 +625,19 @@ for significantly better compression.
             };
             
             SEL rrpSel = NSSelectorFromString(@"requestRecordPermission:");
-            if ([self hasAudioSession] && [self.avSession respondsToSelector:rrpSel])
+            if ([self hasAudioSession] && [self.avSessionRec respondsToSelector:rrpSel])
             {
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-                [self.avSession performSelector:rrpSel withObject:^(BOOL granted){
+                [self.avSessionRec performSelector:rrpSel withObject:^(BOOL granted){
                     if (granted) {
                         startRecording();
                     } else {
                         NSString* msg = @"Error creating audio session, microphone permission denied.";
                         NSLog(@"%@", msg);
                         audioFile.recorder = nil;
-                        if (weakSelf.avSession) {
-                            [weakSelf.avSession setActive:NO error:nil];
+                        if (weakSelf.avSessionRec) {
+                            [weakSelf.avSessionRec setActive:NO error:nil];
                         }
                         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [weakSelf createMediaErrorWithCode:MEDIA_ERR_ABORTED message:msg]];
                         [weakSelf.commandDelegate evalJs:jsString];
@@ -684,13 +684,13 @@ for significantly better compression.
                 }
                 // get the audioSession and set the category to allow recording when device is locked or ring/silent switch engaged
                 if ([weakSelf hasAudioSession]) {
-                    if (![weakSelf.avSession.category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
-                        [weakSelf.avSession setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers|AVAudioSessionCategoryOptionDefaultToSpeaker error:nil];
+                    if (![weakSelf.avSessionRec.category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
+                        [weakSelf.avSessionRec setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers|AVAudioSessionCategoryOptionDefaultToSpeaker error:nil];
 						// force output to speaker, resolves issues with HTML5 audio playback within the app
-						// [weakSelf.avSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
+						// [weakSelf.avSessionRec overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
                     }
 
-                    if (![weakSelf.avSession setActive:YES error:&error]) {
+                    if (![weakSelf.avSessionRec setActive:YES error:&error]) {
                         // other audio with higher priority that does not allow mixing could cause this to fail
                         errorMsg = [NSString stringWithFormat:@"Unable to record audio: %@", [error localizedFailureReason]];
                         // jsString = [NSString stringWithFormat: @"%@(\"%@\",%d,%d);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, MEDIA_ERR_ABORTED];
@@ -748,8 +748,8 @@ for significantly better compression.
                         errorMsg = @"Failed to start recording using AVAudioRecorder";
                     }
                     audioFile.recorder = nil;
-                    if (weakSelf.avSession) {
-                        [weakSelf.avSession setActive:NO error:nil];
+                    if (weakSelf.avSessionRec) {
+                        [weakSelf.avSessionRec setActive:NO error:nil];
                     }
                     jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [weakSelf createMediaErrorWithCode:MEDIA_ERR_ABORTED message:errorMsg]];
                     [weakSelf.commandDelegate evalJs:jsString];
@@ -757,19 +757,19 @@ for significantly better compression.
             };
             
             SEL rrpSel = NSSelectorFromString(@"requestRecordPermission:");
-            if ([self hasAudioSession] && [self.avSession respondsToSelector:rrpSel])
+            if ([self hasAudioSession] && [self.avSessionRec respondsToSelector:rrpSel])
             {
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-                [self.avSession performSelector:rrpSel withObject:^(BOOL granted){
+                [self.avSessionRec performSelector:rrpSel withObject:^(BOOL granted){
                     if (granted) {
                         startRecording();
                     } else {
                         NSString* msg = @"Error creating audio session, microphone permission denied.";
                         NSLog(@"%@", msg);
                         audioFile.recorder = nil;
-                        if (weakSelf.avSession) {
-                            [weakSelf.avSession setActive:NO error:nil];
+                        if (weakSelf.avSessionRec) {
+                            [weakSelf.avSessionRec setActive:NO error:nil];
                         }
                         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_ABORTED message:msg]];
                         [weakSelf.commandDelegate evalJs:jsString];
@@ -895,8 +895,8 @@ for significantly better compression.
         // jsString = [NSString stringWithFormat: @"%@(\"%@\",%d,%d);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, MEDIA_ERR_DECODE];
         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_DECODE message:nil]];
     }
-    if (self.avSession) {
-        [self.avSession setActive:NO error:nil];
+    if (self.avSessionRec) {
+        [self.avSessionRec setActive:NO error:nil];
     }
     [self.commandDelegate evalJs:jsString];
 }
@@ -918,8 +918,8 @@ for significantly better compression.
         // jsString = [NSString stringWithFormat: @"%@(\"%@\",%d,%d);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, MEDIA_ERR_DECODE];
         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_DECODE message:nil]];
     }
-    if (self.avSession) {
-        [self.avSession setActive:NO error:nil];
+    if (self.avSessionRec) {
+        [self.avSessionRec setActive:NO error:nil];
     }
     [self.commandDelegate evalJs:jsString];
 }
@@ -928,7 +928,7 @@ for significantly better compression.
 {
     [[self soundCacheRec] removeAllObjects];
     [self setsoundCacheRec:nil];
-    [self setAvSession:nil];
+    [self setavSessionRec:nil];
 
     [super onMemoryWarning];
 }
