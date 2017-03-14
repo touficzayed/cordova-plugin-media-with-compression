@@ -180,7 +180,7 @@ for significantly better compression.
     NSURL* resourceURL = nil;
 
     if ([self soundCacheRec] == nil) {
-        [self setsoundCacheRec:[NSMutableDictionary dictionaryWithCapacity:1]];
+        [self setSoundCacheRec:[NSMutableDictionary dictionaryWithCapacity:1]];
     } else {
         audioFile = [[self soundCacheRec] objectForKey:mediaId];
     }
@@ -246,14 +246,14 @@ for significantly better compression.
 
     [errorDict setObject:[NSNumber numberWithUnsignedInteger:code] forKey:@"code"];
     [errorDict setObject:message ? message:@"" forKey:@"message"];
-    
+
     NSData* jsonData = [NSJSONSerialization dataWithJSONObject:errorDict options:0 error:nil];
     return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
 }
 
 - (void)create:(CDVInvokedUrlCommand*)command
 {
-    
+
     NSString* mediaId = [command argumentAtIndex:0];
     NSString* resourcePath = [command argumentAtIndex:1];
 
@@ -264,7 +264,7 @@ for significantly better compression.
         NSString* jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_ABORTED message:errorMessage]];
         [self.commandDelegate evalJs:jsString];
     } else {
-        
+
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     }
@@ -528,7 +528,7 @@ for significantly better compression.
         position = round(audioFile.player.currentTime * 1000) / 1000;
     }
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDouble:position];
-    
+
     NSString* jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%.3f);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_POSITION, position];
     [self.commandDelegate evalJs:jsString];
     [self.commandDelegate sendPluginResult:result callbackId:callbackId];
@@ -553,7 +553,7 @@ for significantly better compression.
 
             void (^startRecording)(void) = ^{
                 NSError* __autoreleasing error = nil;
-                
+
                 if (audioFile.recorder != nil) {
                     [audioFile.recorder stop];
                     audioFile.recorder = nil;
@@ -581,8 +581,8 @@ for significantly better compression.
                 NSNumber* quality = [NSNumber numberWithInt:AVAudioQualityMedium];
                 NSNumber* sampleRate = [NSNumber numberWithFloat: 44100.0];
                 NSNumber* numberOfChannels = [NSNumber numberWithInt: 1];
-                
-                
+
+
                 NSDictionary* recorderSettingsDict = [NSDictionary dictionaryWithObjectsAndKeys:
                     formatID,AVFormatIDKey,
                     quality,AVEncoderAudioQualityKey,
@@ -590,9 +590,9 @@ for significantly better compression.
                     numberOfChannels,AVNumberOfChannelsKey,
                     nil
                 ];
-                
+
                 audioFile.recorder = [[CDVAudioRecorderRec alloc] initWithURL:audioFile.resourceURL settings:recorderSettingsDict error:&error];
-                
+
                 //enable metering
                 audioFile.recorder.meteringEnabled = YES;
 
@@ -608,7 +608,7 @@ for significantly better compression.
                         [weakSelf.commandDelegate evalJs:jsString];
                     }
                 }
-                
+
                 if ((error != nil) || (recordingSuccess == NO)) {
                     if (error != nil) {
                         errorMsg = [NSString stringWithFormat:@"Failed to initialize AVAudioRecorder: %@\n", [error localizedFailureReason]];
@@ -623,7 +623,7 @@ for significantly better compression.
                     [weakSelf.commandDelegate evalJs:jsString];
                 }
             };
-            
+
             SEL rrpSel = NSSelectorFromString(@"requestRecordPermission:");
             if ([self hasAudioSession] && [self.avSessionRec respondsToSelector:rrpSel])
             {
@@ -647,7 +647,7 @@ for significantly better compression.
             } else {
                 startRecording();
             }
-            
+
         } else {
             // file did not validate
             NSString* errorMsg = [NSString stringWithFormat:@"Could not record audio at '%@'", audioFile.resourcePath];
@@ -670,14 +670,14 @@ for significantly better compression.
         CDVAudioFileRec* audioFile = [self audioFileForResource:[command argumentAtIndex:1] withId:mediaId doValidation:YES forRecording:YES];
         __block NSString* jsString = nil;
         __block NSString* errorMsg = @"";
-    
+
         if ((audioFile != nil) && (audioFile.resourceURL != nil)) {
 
             __weak CDVSoundRec* weakSelf = self;
 
             void (^startRecording)(void) = ^{
                 NSError* __autoreleasing error = nil;
-                
+
                 if (audioFile.recorder != nil) {
                     [audioFile.recorder stop];
                     audioFile.recorder = nil;
@@ -699,21 +699,21 @@ for significantly better compression.
                         return;
                     }
                 }
-                // Set default format as MPEG4, quality min for best compression        
+                // Set default format as MPEG4, quality min for best compression
                 NSNumber* formatID = [NSNumber numberWithInt:kAudioFormatMPEG4AAC];
                 NSNumber* quality = [NSNumber numberWithInt:AVAudioQualityMin];
 
                 // default values, modify as required
                 static const float defaultSampleRate = 44100.0;
                 static const int defaultChannels = 1;
-    
-                // Set default SampleRate, NumberOfChannels if values are missing    
+
+                // Set default SampleRate, NumberOfChannels if values are missing
                 NSNumber* sampleRate = [[command.arguments objectAtIndex:2] objectForKey:@"SampleRate"];
                 sampleRate = sampleRate!=nil ? sampleRate:[NSNumber numberWithFloat:defaultSampleRate];
-        
+
                 NSNumber* numberOfChannels = [[command.arguments objectAtIndex:2] objectForKey:@"NumberOfChannels"];
                 numberOfChannels = numberOfChannels != nil ? numberOfChannels:[NSNumber numberWithInt:defaultChannels];
-                
+
                 NSDictionary* recorderSettingsDict = [NSDictionary dictionaryWithObjectsAndKeys:
                     formatID,AVFormatIDKey,
                     quality,AVEncoderAudioQualityKey,
@@ -721,12 +721,12 @@ for significantly better compression.
                     numberOfChannels,AVNumberOfChannelsKey,
                     nil
                 ];
-                
+
                 audioFile.recorder = [[CDVAudioRecorderRec alloc] initWithURL:audioFile.resourceURL settings:recorderSettingsDict error:&error];
 
                 //enable metering
                 audioFile.recorder.meteringEnabled = YES;
-                
+
                 bool recordingSuccess = NO;
                 if (error == nil) {
                     audioFile.recorder.delegate = weakSelf;
@@ -738,7 +738,7 @@ for significantly better compression.
                         [weakSelf.commandDelegate evalJs:jsString];
                     }
                 }
-                
+
                 if ((error != nil) || (recordingSuccess == NO)) {
                     if (error != nil) {
                         NSLog(@"Failed to initialize AVAudioRecorder.");
@@ -755,7 +755,7 @@ for significantly better compression.
                     [weakSelf.commandDelegate evalJs:jsString];
                 }
             };
-            
+
             SEL rrpSel = NSSelectorFromString(@"requestRecordPermission:");
             if ([self hasAudioSession] && [self.avSessionRec respondsToSelector:rrpSel])
             {
@@ -780,7 +780,7 @@ for significantly better compression.
                 NSLog(@"Start recording.");
                 startRecording();
             }
-            
+
         } else {
             // file did not validate
             NSLog(@"File did not validate.");
@@ -859,18 +859,18 @@ for significantly better compression.
         [audioFile.recorder updateMeters];
         float averagePower = [audioFile.recorder averagePowerForChannel:0];
         float peakPower = [audioFile.recorder peakPowerForChannel:0];
-        
+
         NSLog(@"averagePower: '%f' peakPower: '%f'",averagePower,peakPower);
-        
+
         NSMutableDictionary* powerLevels = [NSMutableDictionary dictionaryWithCapacity:2];
-        
+
         [powerLevels setObject:[NSNumber numberWithFloat:averagePower] forKey:@"averagePower"];
         [powerLevels setObject:[NSNumber numberWithFloat:peakPower] forKey:@"peakPower"];
-        
+
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:powerLevels];
-        
+
         [self.commandDelegate sendPluginResult: pluginResult callbackId:command.callbackId];
-        
+
     }
     // ignore if no media recording
     if (jsString) {
@@ -927,8 +927,8 @@ for significantly better compression.
 - (void)onMemoryWarning
 {
     [[self soundCacheRec] removeAllObjects];
-    [self setsoundCacheRec:nil];
-    [self setavsessionRec:nil];
+    [self setSoundCacheRec:nil];
+    [self setAvSessionRec:nil];
 
     [super onMemoryWarning];
 }
