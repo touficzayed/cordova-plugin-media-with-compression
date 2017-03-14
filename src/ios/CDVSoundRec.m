@@ -180,7 +180,7 @@ for significantly better compression.
     NSURL* resourceURL = nil;
 
     if ([self soundCacheRec] == nil) {
-        [self setsoundCacheRec:[NSMutableDictionary dictionaryWithCapacity:1]];
+        [self setsoundCache:[NSMutableDictionary dictionaryWithCapacity:1]];
     } else {
         audioFile = [[self soundCacheRec] objectForKey:mediaId];
     }
@@ -927,8 +927,8 @@ for significantly better compression.
 - (void)onMemoryWarning
 {
     [[self soundCacheRec] removeAllObjects];
-    [self setsoundCacheRec:nil];
-    [self setavSessionRec:nil];
+    [self setsoundCache:nil];
+    [self setavSession:nil];
 
     [super onMemoryWarning];
 }
