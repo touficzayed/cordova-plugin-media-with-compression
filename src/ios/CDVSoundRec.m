@@ -67,7 +67,7 @@ for significantly better compression.
 
 @implementation CDVSoundRec
 
-@synthesize soundCacheRec, avSessionRec;
+@synthesize soundCache, avSession;
 
 // Maps a url for a resource path for recording
 - (NSURL*)urlForRecording:(NSString*)resourcePath
@@ -179,10 +179,10 @@ for significantly better compression.
     CDVAudioFileRec* audioFile = nil;
     NSURL* resourceURL = nil;
 
-    if ([self soundCacheRec] == nil) {
-        [self setSoundCacheRec:[NSMutableDictionary dictionaryWithCapacity:1]];
+    if ([self soundCache] == nil) {
+        [self setSoundCache:[NSMutableDictionary dictionaryWithCapacity:1]];
     } else {
-        audioFile = [[self soundCacheRec] objectForKey:mediaId];
+        audioFile = [[self soundCache] objectForKey:mediaId];
     }
     if (audioFile == nil) {
         // validate resourcePath and create
@@ -194,7 +194,7 @@ for significantly better compression.
             audioFile = [[CDVAudioFileRec alloc] init];
             audioFile.resourcePath = resourcePath;
             audioFile.resourceURL = nil;  // validate resourceURL when actually play or record
-            [[self soundCacheRec] setObject:audioFile forKey:mediaId];
+            [[self soundCache] setObject:audioFile forKey:mediaId];
         }
     }
     if (bValidate && (audioFile.resourceURL == nil)) {
@@ -225,14 +225,14 @@ for significantly better compression.
 {
     BOOL bSession = YES;
 
-    if (!self.avSessionRec) {
+    if (!self.avSession) {
         NSError* error = nil;
 
-        self.avSessionRec = [AVAudioSession sharedInstance];
+        self.avSession = [AVAudioSession sharedInstance];
         if (error) {
             // is not fatal if can't get AVAudioSession , just log the error
             NSLog(@"error creating audio session: %@", [[error userInfo] description]);
-            self.avSessionRec = nil;
+            self.avSession = nil;
             bSession = NO;
         }
     }
@@ -278,14 +278,14 @@ for significantly better compression.
     NSString* mediaId = [command argumentAtIndex:0];
     NSNumber* volume = [command argumentAtIndex:1 withDefault:[NSNumber numberWithFloat:1.0]];
 
-    if ([self soundCacheRec] != nil) {
-        CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+    if ([self soundCache] != nil) {
+        CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
         if (audioFile != nil) {
             audioFile.volume = volume;
             if (audioFile.player) {
                 audioFile.player.volume = [volume floatValue];
             }
-            [[self soundCacheRec] setObject:audioFile forKey:mediaId];
+            [[self soundCache] setObject:audioFile forKey:mediaId];
         }
     }
 
@@ -323,8 +323,8 @@ for significantly better compression.
                     }
 
                     NSString* sessionCategory = bPlayAudioWhenScreenIsLocked ? AVAudioSessionCategoryPlayback : AVAudioSessionCategorySoloAmbient;
-                    [self.avSessionRec setCategory:sessionCategory error:&err];
-                    if (![self.avSessionRec setActive:YES error:&err]) {
+                    [self.avSession setCategory:sessionCategory error:&err];
+                    if (![self.avSession setActive:YES error:&err]) {
                         // other audio with higher priority that does not allow mixing could cause this to fail
                         NSLog(@"Unable to play audio: %@", [err localizedFailureReason]);
                         bError = YES;
@@ -414,8 +414,8 @@ for significantly better compression.
     if (playerError != nil) {
         NSLog(@"Failed to initialize AVAudioPlayer: %@\n", [playerError localizedDescription]);
         audioFile.player = nil;
-        if (self.avSessionRec) {
-            [self.avSessionRec setActive:NO error:nil];
+        if (self.avSession) {
+            [self.avSession setActive:NO error:nil];
         }
         bError = YES;
     } else {
@@ -429,7 +429,7 @@ for significantly better compression.
 - (void)stopPlayingAudio:(CDVInvokedUrlCommand*)command
 {
     NSString* mediaId = [command argumentAtIndex:0];
-    CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if ((audioFile != nil) && (audioFile.player != nil)) {
@@ -447,7 +447,7 @@ for significantly better compression.
 {
     NSString* mediaId = [command argumentAtIndex:0];
     NSString* jsString = nil;
-    CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
 
     if ((audioFile != nil) && (audioFile.player != nil)) {
         NSLog(@"Paused playing audio sample '%@'", audioFile.resourcePath);
@@ -470,7 +470,7 @@ for significantly better compression.
 
     NSString* mediaId = [command argumentAtIndex:0];
 
-    CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     double position = [[command argumentAtIndex:1] doubleValue];
 
     if ((audioFile != nil) && (audioFile.player != nil)) {
@@ -497,7 +497,7 @@ for significantly better compression.
     NSString* mediaId = [command argumentAtIndex:0];
 
     if (mediaId != nil) {
-        CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+        CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
         if (audioFile != nil) {
             if (audioFile.player && [audioFile.player isPlaying]) {
                 [audioFile.player stop];
@@ -505,11 +505,11 @@ for significantly better compression.
             if (audioFile.recorder && [audioFile.recorder isRecording]) {
                 [audioFile.recorder stop];
             }
-            if (self.avSessionRec) {
-                [self.avSessionRec setActive:NO error:nil];
-                self.avSessionRec = nil;
+            if (self.avSession) {
+                [self.avSession setActive:NO error:nil];
+                self.avSession = nil;
             }
-            [[self soundCacheRec] removeObjectForKey:mediaId];
+            [[self soundCache] removeObjectForKey:mediaId];
             NSLog(@"Media with id %@ released", mediaId);
         }
     }
@@ -521,7 +521,7 @@ for significantly better compression.
     NSString* mediaId = [command argumentAtIndex:0];
 
 #pragma unused(mediaId)
-    CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     double position = -1;
 
     if ((audioFile != nil) && (audioFile.player != nil) && [audioFile.player isPlaying]) {
@@ -529,7 +529,7 @@ for significantly better compression.
     }
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDouble:position];
 
-    NSString* jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%.3f);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_POSITION, position];
+    NSString* jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%.3f);", @"cordova.require('cordova-media-with-compression.Media').onStatus", mediaId, MEDIA_POSITION, position];
     [self.commandDelegate evalJs:jsString];
     [self.commandDelegate sendPluginResult:result callbackId:callbackId];
 }
@@ -560,17 +560,17 @@ for significantly better compression.
                 }
                 // get the audioSession and set the category to allow recording when device is locked or ring/silent switch engaged
                 if ([weakSelf hasAudioSession]) {
-                    if (![weakSelf.avSessionRec.category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
-                        [weakSelf.avSessionRec setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers|AVAudioSessionCategoryOptionDefaultToSpeaker error:nil];
+                    if (![weakSelf.avSession.category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
+                        [weakSelf.avSession setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers|AVAudioSessionCategoryOptionDefaultToSpeaker error:nil];
 						// force output to speaker, resolves issues with HTML5 audio playback within the app
-						// [weakSelf.avSessionRec overrideOutputAudioPort:AVAudioSessionCategoryOptionDefaultToSpeaker  error:nil];
+						// [weakSelf.avSession overrideOutputAudioPort:AVAudioSessionCategoryOptionDefaultToSpeaker  error:nil];
                     }
 
-                    if (![weakSelf.avSessionRec setActive:YES error:&error]) {
+                    if (![weakSelf.avSession setActive:YES error:&error]) {
                         // other audio with higher priority that does not allow mixing could cause this to fail
                         errorMsg = [NSString stringWithFormat:@"Unable to record audio: %@", [error localizedFailureReason]];
                         // jsString = [NSString stringWithFormat: @"%@(\"%@\",%d,%d);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, MEDIA_ERR_ABORTED];
-                        jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_ABORTED message:errorMsg]];
+                        jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRecRec').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_ABORTED message:errorMsg]];
                         [weakSelf.commandDelegate evalJs:jsString];
                         return;
                     }
@@ -616,8 +616,8 @@ for significantly better compression.
                         errorMsg = @"Failed to start recording using AVAudioRecorder";
                     }
                     audioFile.recorder = nil;
-                    if (weakSelf.avSessionRec) {
-                        [weakSelf.avSessionRec setActive:NO error:nil];
+                    if (weakSelf.avSession) {
+                        [weakSelf.avSession setActive:NO error:nil];
                     }
                     jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_ABORTED message:errorMsg]];
                     [weakSelf.commandDelegate evalJs:jsString];
@@ -625,19 +625,19 @@ for significantly better compression.
             };
 
             SEL rrpSel = NSSelectorFromString(@"requestRecordPermission:");
-            if ([self hasAudioSession] && [self.avSessionRec respondsToSelector:rrpSel])
+            if ([self hasAudioSession] && [self.avSession respondsToSelector:rrpSel])
             {
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-                [self.avSessionRec performSelector:rrpSel withObject:^(BOOL granted){
+                [self.avSession performSelector:rrpSel withObject:^(BOOL granted){
                     if (granted) {
                         startRecording();
                     } else {
                         NSString* msg = @"Error creating audio session, microphone permission denied.";
                         NSLog(@"%@", msg);
                         audioFile.recorder = nil;
-                        if (weakSelf.avSessionRec) {
-                            [weakSelf.avSessionRec setActive:NO error:nil];
+                        if (weakSelf.avSession) {
+                            [weakSelf.avSession setActive:NO error:nil];
                         }
                         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [weakSelf createMediaErrorWithCode:MEDIA_ERR_ABORTED message:msg]];
                         [weakSelf.commandDelegate evalJs:jsString];
@@ -684,13 +684,13 @@ for significantly better compression.
                 }
                 // get the audioSession and set the category to allow recording when device is locked or ring/silent switch engaged
                 if ([weakSelf hasAudioSession]) {
-                    if (![weakSelf.avSessionRec.category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
-                        [weakSelf.avSessionRec setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers|AVAudioSessionCategoryOptionDefaultToSpeaker error:nil];
+                    if (![weakSelf.avSession.category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
+                        [weakSelf.avSession setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers|AVAudioSessionCategoryOptionDefaultToSpeaker error:nil];
 						// force output to speaker, resolves issues with HTML5 audio playback within the app
-						// [weakSelf.avSessionRec overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
+						// [weakSelf.avSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
                     }
 
-                    if (![weakSelf.avSessionRec setActive:YES error:&error]) {
+                    if (![weakSelf.avSession setActive:YES error:&error]) {
                         // other audio with higher priority that does not allow mixing could cause this to fail
                         errorMsg = [NSString stringWithFormat:@"Unable to record audio: %@", [error localizedFailureReason]];
                         // jsString = [NSString stringWithFormat: @"%@(\"%@\",%d,%d);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, MEDIA_ERR_ABORTED];
@@ -748,8 +748,8 @@ for significantly better compression.
                         errorMsg = @"Failed to start recording using AVAudioRecorder";
                     }
                     audioFile.recorder = nil;
-                    if (weakSelf.avSessionRec) {
-                        [weakSelf.avSessionRec setActive:NO error:nil];
+                    if (weakSelf.avSession) {
+                        [weakSelf.avSession setActive:NO error:nil];
                     }
                     jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [weakSelf createMediaErrorWithCode:MEDIA_ERR_ABORTED message:errorMsg]];
                     [weakSelf.commandDelegate evalJs:jsString];
@@ -757,19 +757,19 @@ for significantly better compression.
             };
 
             SEL rrpSel = NSSelectorFromString(@"requestRecordPermission:");
-            if ([self hasAudioSession] && [self.avSessionRec respondsToSelector:rrpSel])
+            if ([self hasAudioSession] && [self.avSession respondsToSelector:rrpSel])
             {
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-                [self.avSessionRec performSelector:rrpSel withObject:^(BOOL granted){
+                [self.avSession performSelector:rrpSel withObject:^(BOOL granted){
                     if (granted) {
                         startRecording();
                     } else {
                         NSString* msg = @"Error creating audio session, microphone permission denied.";
                         NSLog(@"%@", msg);
                         audioFile.recorder = nil;
-                        if (weakSelf.avSessionRec) {
-                            [weakSelf.avSessionRec setActive:NO error:nil];
+                        if (weakSelf.avSession) {
+                            [weakSelf.avSession setActive:NO error:nil];
                         }
                         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_ABORTED message:msg]];
                         [weakSelf.commandDelegate evalJs:jsString];
@@ -795,7 +795,7 @@ for significantly better compression.
 {
     NSString* mediaId = [command argumentAtIndex:0];
 
-    CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if ((audioFile != nil) && (audioFile.recorder != nil)) {
@@ -815,7 +815,7 @@ for significantly better compression.
 {
     NSString* mediaId = [command argumentAtIndex:0];
 
-    CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if ((audioFile != nil) && (audioFile.recorder != nil)) {
@@ -833,7 +833,7 @@ for significantly better compression.
 {
     NSString* mediaId = [command argumentAtIndex:0];
 
-    CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if ((audioFile != nil) && (audioFile.recorder != nil)) {
@@ -851,7 +851,7 @@ for significantly better compression.
 {
     NSString* mediaId = [command argumentAtIndex:0];
 
-    CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if ((audioFile != nil) && (audioFile.recorder != nil)) {
@@ -883,7 +883,7 @@ for significantly better compression.
 {
     CDVAudioRecorderRec* aRecorder = (CDVAudioRecorderRec*)recorder;
     NSString* mediaId = aRecorder.mediaId;
-    CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if (audioFile != nil) {
@@ -895,8 +895,8 @@ for significantly better compression.
         // jsString = [NSString stringWithFormat: @"%@(\"%@\",%d,%d);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, MEDIA_ERR_DECODE];
         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_DECODE message:nil]];
     }
-    if (self.avSessionRec) {
-        [self.avSessionRec setActive:NO error:nil];
+    if (self.avSession) {
+        [self.avSession setActive:NO error:nil];
     }
     [self.commandDelegate evalJs:jsString];
 }
@@ -905,7 +905,7 @@ for significantly better compression.
 {
     CDVAudioPlayerRec* aPlayer = (CDVAudioPlayerRec*)player;
     NSString* mediaId = aPlayer.mediaId;
-    CDVAudioFileRec* audioFile = [[self soundCacheRec] objectForKey:mediaId];
+    CDVAudioFileRec* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
     if (audioFile != nil) {
@@ -918,29 +918,29 @@ for significantly better compression.
         // jsString = [NSString stringWithFormat: @"%@(\"%@\",%d,%d);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, MEDIA_ERR_DECODE];
         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-media-with-compression.MediaRec').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_DECODE message:nil]];
     }
-    if (self.avSessionRec) {
-        [self.avSessionRec setActive:NO error:nil];
+    if (self.avSession) {
+        [self.avSession setActive:NO error:nil];
     }
     [self.commandDelegate evalJs:jsString];
 }
 
 - (void)onMemoryWarning
 {
-    [[self soundCacheRec] removeAllObjects];
-    [self setSoundCacheRec:nil];
-    [self setAvSessionRec:nil];
+    [[self soundCache] removeAllObjects];
+    [self setSoundCache:nil];
+    [self setAvSession:nil];
 
     [super onMemoryWarning];
 }
 
 - (void)dealloc
 {
-    [[self soundCacheRec] removeAllObjects];
+    [[self soundCache] removeAllObjects];
 }
 
 - (void)onReset
 {
-    for (CDVAudioFileRec* audioFile in [[self soundCacheRec] allValues]) {
+    for (CDVAudioFileRec* audioFile in [[self soundCache] allValues]) {
         if (audioFile != nil) {
             if (audioFile.player != nil) {
                 [audioFile.player stop];
@@ -952,7 +952,7 @@ for significantly better compression.
         }
     }
 
-    [[self soundCacheRec] removeAllObjects];
+    [[self soundCache] removeAllObjects];
 }
 
 @end
