@@ -42,7 +42,12 @@ module.exports = {
             if (fn === 'mp3' || fn === 'wma' || fn === 'wav' ||
                 fn === 'cda' || fn === 'adx' || fn === 'wm' ||
                 fn === 'm3u' || fn === 'wmx' || fn === 'm4a') {
-                thisM.node = new Audio(src);
+                if (thisM.node==null) {
+                    thisM.node = new Audio(src);
+                } else {
+                    thisM.node.src=src;
+                    thisM.node.load();
+                }
 
                 thisM.node.onloadstart = function () {
                     Media.onStatus(id, Media.MEDIA_STATE, Media.MEDIA_STARTING);
