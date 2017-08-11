@@ -26,13 +26,15 @@ var argscheck = require('cordova/argscheck'),
 
 var mediaObjects = {};
 
+var node = new Audio();
+
 /**
  * Creates new Audio node and with necessary event listeners attached
  * @param  {MediaRec} media MediaRec object
  * @return {Audio}       Audio element 
  */
 function createNode (media) {
-    var node = new Audio();
+    //var node = new Audio();
 
     node.onloadstart = function () {
         MediaRec.onStatus(media.id, MediaRec.MEDIA_STATE, MediaRec.MEDIA_STARTING);
